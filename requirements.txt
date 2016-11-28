@@ -1,3 +1,4 @@
 flywheel
 flask
 cherrypy
+boto3

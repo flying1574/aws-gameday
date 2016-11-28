@@ -31,10 +31,11 @@ API_BASE = ARGS.API_base
 APP = Flask(__name__)
 
 DDB_ENGINE = Engine()
-DDB_ENGINE.connect_to_region(region)
+DDB_ENGINE.connect_to_region('eu-central-1')
 DDB_ENGINE.register(Message)
 
 ELASTICACHE_CLIENT = boto3.client('elasticache')
+
 
 # creating flask route for type argument
 @APP.route('/', methods=['GET', 'POST'])
@@ -47,12 +48,15 @@ def main_handler():
     else:
         return get_message_stats()
 
+
 def get_message_stats():
     """
     provides a status that players can check
     """
-    msg_count = len(MESSAGES.keys())
+    msg_count = DDB_ENGINE(Message).filter().count()
+
     return "There are %d messages in the MESSAGES dictionary" % msg_count
+
 
 def process_message(msg):
     """
@@ -69,7 +73,7 @@ def process_message(msg):
     # Try to get the parts of the message from the MESSAGES dictionary.
     # If it's not there, create one that has None in both parts
     try:
-        message = ddb_engine(Message).filter(Message.id == msg_id).one()
+        message = DDB_ENGINE(Message).filter(Message.id == msg_id).one()
     except EntityNotFoundException:
         message = Message(total_parts=total_parts)
 
@@ -77,10 +81,10 @@ def process_message(msg):
     message.parts[part_number] = data
 
     # store the parts in MESSAGES
-    ddb_engine.sync(message)
+    DDB_ENGINE.sync(message)
 
     # if both parts are filled, the message is complete
-    if None not in parts:
+    if None not in message.parts:
         # app.logger.debug("got a complete message for %s" % msg_id)
         print "have both parts"
         # We can build the final message.
@@ -98,7 +102,7 @@ def process_message(msg):
         req = urllib2.Request(url, data=result, headers={'x-gameday-token':ARGS.API_token})
         resp = urllib2.urlopen(req)
         resp.close()
-        print response
+        print resp
 
     return 'OK'
 
