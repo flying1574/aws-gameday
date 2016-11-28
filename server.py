@@ -11,6 +11,7 @@ from flask import Flask, request
 import logging
 import argparse
 import urllib2
+import message
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -22,11 +23,15 @@ PARSER.add_argument('API_base', help="the base URL for the game API")
 ARGS = PARSER.parse_args()
 
 # defining global vars
-MESSAGES = {} # A dictionary that contains message parts
 API_BASE = ARGS.API_base
 # 'https://csm45mnow5.execute-api.us-west-2.amazonaws.com/dev'
 
 APP = Flask(__name__)
+
+DDB_ENGINE = Engine()
+DDB_ENGINE.connect_to_region(region)
+DDB_ENGINE.register(Message)
+
 
 # creating flask route for type argument
 @APP.route('/', methods=['GET', 'POST'])
@@ -50,26 +55,33 @@ def process_message(msg):
     """
     processes the messages by combining and appending the kind code
     """
-    msg_id = msg['Id'] # The unique ID for this message
-    part_number = msg['PartNumber'] # Which part of the message it is
-    data = msg['Data'] # The data of the message
+    msg_id = msg.get('Id') # The unique ID for this message
+    part_number = msg.get('PartNumber') # Which part of the message it is
+    data = msg.get('Data') # The data of the message
+    total_parts = msg.get('TotalParts') # The data of the message
+
+    if not msg_id or not part_number or not data:
+        return None
 
     # Try to get the parts of the message from the MESSAGES dictionary.
     # If it's not there, create one that has None in both parts
-    parts = MESSAGES.get(msg_id, [None, None])
+    try:
+        message = ddb_engine(Message).filter(Message.id == msg_id).one()
+    except EntityNotFoundException:
+        message = Message(total_parts=total_parts)
 
     # store this part of the message in the correct part of the list
-    parts[part_number] = data
+    message.parts[part_number] = data
 
     # store the parts in MESSAGES
-    MESSAGES[msg_id] = parts
+    ddb_engine.sync(message)
 
     # if both parts are filled, the message is complete
     if None not in parts:
         # app.logger.debug("got a complete message for %s" % msg_id)
         print "have both parts"
         # We can build the final message.
-        result = parts[0] + parts[1]
+        result = ''.join(message.parts)
         # sending the response to the score calculator
         # format:
         #   url -> api_base/jFgwN4GvTB1D2QiQsQ8GHwQUbbIJBS6r7ko9RVthXCJqAiobMsLRmsuwZRQTlOEW
