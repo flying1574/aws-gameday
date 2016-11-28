@@ -11,7 +11,9 @@ from flask import Flask, request
 import logging
 import argparse
 import urllib2
-import message
+from flywheel import Engine, EntityNotFoundException
+from message import Message
+import boto3
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -32,6 +34,7 @@ DDB_ENGINE = Engine()
 DDB_ENGINE.connect_to_region(region)
 DDB_ENGINE.register(Message)
 
+ELASTICACHE_CLIENT = boto3.client('elasticache')
 
 # creating flask route for type argument
 @APP.route('/', methods=['GET', 'POST'])
