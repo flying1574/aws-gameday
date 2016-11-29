@@ -8,11 +8,13 @@ RUN apt-get update && apt-get install -q -y \
   libpq-dev \
   python-dev
 
+RUN pip install -U six
+
 # Copy this git repo into the /dataflow directory of the container:
 ADD . /app
 
 # Install python dependencies
-RUN cd /app && pip install -r requirements.txt
+RUN cd /app && pip install -U -r requirements.txt
 
 # This command will run when running the container:
 #CMD python /app/cherrypy-server.py

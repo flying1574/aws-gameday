@@ -32,7 +32,7 @@ APP = Flask(__name__)
 
 DDB_ENGINE = Engine()
 DDB_ENGINE.connect_to_region('eu-central-1')
-Message.meta_.name = 'gameday-generics'
+Message.meta_.name = 'gameday-production'
 
 DDB_ENGINE.register(Message)
 
@@ -69,7 +69,7 @@ def process_message(msg):
     data = msg.get('Data') # The data of the message
     total_parts = msg.get('TotalParts') # The data of the message
 
-    if not msg_id or not part_number or not data:
+    if not msg_id or not data:
         return None
 
     # Try to get the parts of the message from the MESSAGES dictionary.
