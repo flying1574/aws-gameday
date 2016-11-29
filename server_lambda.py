@@ -42,7 +42,7 @@ def unpack_message(event):
     #         }
     #     ]
     # }
-    kinesis_msg = event.get('Records', {}).get('kinesis', {}).get('data')
+    kinesis_msg = event.get('Records', [{}])[0].get('kinesis', {}).get('data')
 
     if kinesis_msg:
         return kinesis_msg
@@ -120,4 +120,4 @@ if __name__ == "__main__":
           "awsRegion": "us-east-1"
         }
       ]
-    })
+    }, None)
