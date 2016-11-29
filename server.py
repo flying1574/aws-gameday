@@ -36,7 +36,7 @@ Message.meta_.name = 'gameday-production'
 
 DDB_ENGINE.register(Message)
 
-ELASTICACHE_CLIENT = boto3.client('elasticache')
+#ELASTICACHE_CLIENT = boto3.client('elasticache')
 
 
 # creating flask route for type argument
