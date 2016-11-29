@@ -32,6 +32,8 @@ APP = Flask(__name__)
 
 DDB_ENGINE = Engine()
 DDB_ENGINE.connect_to_region('eu-central-1')
+Message.meta_.name = 'gameday-generics'
+
 DDB_ENGINE.register(Message)
 
 ELASTICACHE_CLIENT = boto3.client('elasticache')
@@ -75,7 +77,9 @@ def process_message(msg):
     try:
         message = DDB_ENGINE(Message).filter(Message.id == msg_id).one()
     except EntityNotFoundException:
-        message = Message(total_parts=total_parts)
+        message = Message(id=msg_id, total_parts=total_parts)
+    except Exception as e:
+        print(str(e))
 
     # store this part of the message in the correct part of the list
     message.parts[part_number] = data
@@ -107,7 +111,6 @@ def process_message(msg):
     return 'OK'
 
 if __name__ == "__main__":
-
     # By default, we disable threading for "debugging" purposes.
     # This will cause the app to block requests, which means that you miss out on some points,
     # and fail ALB healthchecks, but whatever I know I'm getting fired on Friday.
