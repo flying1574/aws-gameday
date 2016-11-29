@@ -15,4 +15,5 @@ ADD . /app
 RUN cd /app && pip install -r requirements.txt
 
 # This command will run when running the container:
-CMD python /app/cherrypy-server.py
+#CMD python /app/cherrypy-server.py
+CMD python /app/server.py ecfb7f4745 http://requestb.in/sqmxgzsq
