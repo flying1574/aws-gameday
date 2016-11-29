@@ -94,11 +94,13 @@ def process_message(msg):
     DDB_ENGINE.sync(message)
 
     # if both parts are filled, the message is complete
-    if all(message.parts):
+    if not message.message_sent and all(message.parts):
         # app.logger.debug("got a complete message for %s" % msg_id)
         print "have all parts"
         # We can build the final message.
         result = ''.join(message.parts)
+        message.message_sent = 1
+        DDB_ENGINE.sync(message)
         # sending the response to the score calculator
         # format:
         #   url -> api_base/jFgwN4GvTB1D2QiQsQ8GHwQUbbIJBS6r7ko9RVthXCJqAiobMsLRmsuwZRQTlOEW
