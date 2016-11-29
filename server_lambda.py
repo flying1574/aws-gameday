@@ -10,6 +10,9 @@ Args:
 import requests
 from flywheel import Engine, EntityNotFoundException
 from message import Message
+import boto3
+import json
+import base64
 
 
 API_BASE = 'https://dashboard.cash4code.net/score'
@@ -44,8 +47,21 @@ def unpack_message(event):
     # }
     kinesis_msg = event.get('Records', [{}])[0].get('kinesis', {}).get('data')
 
+    s3_msg = event.get('Records', [{}])[0].get('s3')
+
     if kinesis_msg:
-        return kinesis_msg
+        print("Received Kinesis event for - {}".format(kinesis_msg))
+
+        return json.loads(base64.decodestring(kinesis_msg))
+    elif s3_msg:
+        s3_bucket = s3_msg['bucket']['name']
+        s3_key = s3_msg['object']['key']
+
+        print("Received S3 event for - {}".format(s3_key))
+
+        s3_client = boto3.client('s3', region_name='eu-central-1')
+        s3_msg = json.loads(s3_client.get_object(Bucket=s3_bucket, Key=s3_key)['Body'].read())
+        return s3_msg
 
     return event
 
@@ -56,6 +72,9 @@ def handler(msg, context):
     """
 
     msg = unpack_message(msg)
+
+    if not msg:
+        return
 
     msg_id = msg.get('Id') # The unique ID for this message
     part_number = msg.get('PartNumber') # Which part of the message it is
