@@ -21,11 +21,42 @@ Message.meta_.name = 'gameday-production'
 
 DDB_ENGINE.register(Message)
 
+def unpack_message(event):
+    # {
+    #     "Records": [
+    #         {
+    #             "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+    #             "eventVersion": "1.0",
+    #             "kinesis": {
+    #                 "approximateArrivalTimestamp": 1428537600,
+    #                 "partitionKey": "partitionKey-3",
+    #                 "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
+    #                 "kinesisSchemaVersion": "1.0",
+    #                 "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
+    #             },
+    #             "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+    #             "eventName": "aws:kinesis:record",
+    #             "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+    #             "eventSource": "aws:kinesis",
+    #             "awsRegion": "us-east-1"
+    #         }
+    #     ]
+    # }
+    kinesis_msg = event.get('Records', {}).get('kinesis', {}).get('data')
 
-def handler(msg):
+    if kinesis_msg:
+        return kinesis_msg
+
+    return event
+
+
+def handler(msg, context):
     """
     processes the messages by combining and appending the kind code
     """
+
+    msg = unpack_message(msg)
+
     msg_id = msg.get('Id') # The unique ID for this message
     part_number = msg.get('PartNumber') # Which part of the message it is
     data = msg.get('Data') # The data of the message
@@ -70,6 +101,23 @@ def handler(msg):
     return 'OK'
 
 if __name__ == "__main__":
-    handler({'Id': 'blah', 'TotalParts': 2, 'PartNumber': 0, 'Data': 'blah_1'})
-    handler({'Id': 'blah', 'TotalParts': 2, 'PartNumber': 1, 'Data': 'blah_2'})
-
+    handler({
+      "Records": [
+        {
+          "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+          "eventVersion": "1.0",
+          "kinesis": {
+            "approximateArrivalTimestamp": 1428537600,
+            "partitionKey": "partitionKey-3",
+            "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
+            "kinesisSchemaVersion": "1.0",
+            "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
+          },
+          "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+          "eventName": "aws:kinesis:record",
+          "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+          "eventSource": "aws:kinesis",
+          "awsRegion": "us-east-1"
+        }
+      ]
+    })

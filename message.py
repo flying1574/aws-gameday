@@ -11,6 +11,6 @@ class Message(Model):
     def __init__(self, id, total_parts):
         super(Message, self).__init__()
         self.id = id
-        self.parts = [None] * total_parts
+        self.parts = [None] * int(total_parts)
         self.message_sent = 0
 

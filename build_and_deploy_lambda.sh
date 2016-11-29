@@ -14,6 +14,7 @@ mkdir dist
 cp -R dist_env/lib/python2.7/site-packages/* dist/
 cp -R dist_env/lib64/python2.7/site-packages/* dist/
 cp ../server_lambda.py dist/
+cp ../message.py dist/
 
 cd dist
 
