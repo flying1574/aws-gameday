@@ -40,6 +40,10 @@ DDB_ENGINE.register(Message)
 
 
 # creating flask route for type argument
+@APP.route('/ping', methods=['GET', 'POST'])
+def healthcheck():
+    return "ok"
+
 @APP.route('/', methods=['GET', 'POST'])
 def main_handler():
     """
