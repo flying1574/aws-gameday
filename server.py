@@ -59,7 +59,9 @@ def get_message_stats():
     """
     provides a status that players can check
     """
-    msg_count = DDB_ENGINE(Message).filter().count()
+    resp = DDB_ENGINE.dynamo.describe_table(Message.meta_.ddb_tablename())
+
+    msg_count = resp.response['ItemCount']
 
     return "There are %d messages in the MESSAGES dictionary" % msg_count
 
@@ -92,9 +94,9 @@ def process_message(msg):
     DDB_ENGINE.sync(message)
 
     # if both parts are filled, the message is complete
-    if None not in message.parts:
+    if all(message.parts):
         # app.logger.debug("got a complete message for %s" % msg_id)
-        print "have both parts"
+        print "have all parts"
         # We can build the final message.
         result = ''.join(message.parts)
         # sending the response to the score calculator
@@ -107,7 +109,7 @@ def process_message(msg):
         url = API_BASE + '/' + msg_id
         print url
         print result
-        req = urllib2.Request(url, data=result, headers={'x-gameday-token':ARGS.API_token})
+        req = urllib2.Request(url, data=result, headers={'x-gameday-token': ARGS.API_token})
         resp = urllib2.urlopen(req)
         resp.close()
         print resp
